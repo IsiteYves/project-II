@@ -13,7 +13,7 @@ KURA is a Python CLI application that serves as a resource bridge for Rwandan ru
 ## Installation & Setup
 
 ### Prerequisites
-- Python 3.x (Any minor version of python 3) installed on your system
+- Python 3.x (Any minor version of python 3) installed on your systems
 
 ### Running the Application
 ```bash
