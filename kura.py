@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 def init_db():
+    # Create the local SQLite database and required tables.
     conn = sqlite3.connect('kura.db')
     cursor = conn.cursor()
     
@@ -57,6 +58,7 @@ def init_db():
     conn.close()
 
 def seed_data():
+    # Insert starter records only when tables are empty.
     conn = sqlite3.connect('kura.db')
     cursor = conn.cursor()
     
@@ -94,6 +96,7 @@ def seed_data():
     conn.close()
 
 def main_menu():
+    # Display the home menu and return the selected option.
     print("\n=== KURA - Youth Growth & Opportunity Bridge ===")
     print("1. Register Portfolio")
     print("2. Explore Opportunities")
@@ -103,6 +106,7 @@ def main_menu():
     return input("Enter your choice (1-5): ")
 
 def register_portfolio():
+    # Collect and store a youth profile for opportunities matching.
     print("\n=== Register Your Portfolio ===")
     
     name = input("Full Name: ")
@@ -132,6 +136,7 @@ def register_portfolio():
         print(f"Experience: {experience}")
         print(f"Languages: {languages}")
         
+        # Optionally export a simple text resume after registration.
         export = input("\nExport as .txt file? (y/n): ").lower()
         if export == 'y':
             export_resume(user_id, name, district, skills, experience, languages)
@@ -140,6 +145,7 @@ def register_portfolio():
         print(f"Error: {e}")
 
 def export_resume(user_id, name, district, skills, experience, languages):
+    # Build a readable .txt resume from captured profile details.
     filename = f"resume_{name.replace(' ', '_')}_{user_id}.txt"
     
     try:
@@ -160,6 +166,7 @@ def export_resume(user_id, name, district, skills, experience, languages):
         print(f"Error exporting resume: {e}")
 
 def explore_opportunities():
+    # Show opportunities, filtered by district when provided.
     print("\n=== Explore Opportunities ===")
     district = input("Enter your district (or press Enter for all): ")
     
@@ -167,6 +174,7 @@ def explore_opportunities():
         conn = sqlite3.connect('kura.db')
         cursor = conn.cursor()
         
+        # Run a district-specific query or return all records.
         if district:
             cursor.execute('''
             SELECT title, type, description, contact FROM opportunities 
@@ -195,6 +203,7 @@ def explore_opportunities():
         print(f"Error: {e}")
 
 def mental_health_resources():
+    # Show wellbeing services, filtered by district when provided.
     print("\n=== Mental Health & Wellbeing Resources ===")
     district = input("Enter your district (or press Enter for all): ")
     
@@ -202,6 +211,7 @@ def mental_health_resources():
         conn = sqlite3.connect('kura.db')
         cursor = conn.cursor()
         
+        # Run a district-specific query or return all records.
         if district:
             cursor.execute('''
             SELECT name, type, contact, hours FROM mental_health 
@@ -230,8 +240,10 @@ def mental_health_resources():
         print(f"Error: {e}")
 
 def admin_log():
+    # Capture district outreach details from authorized officials.
     print("\n=== Admin: Log District Outreach ===")
     
+    # Keep this admin flow protected with a basic password check.
     password = input("Enter admin password: ")
     if password != "admin123":
         print("Invalid password!")
@@ -261,9 +273,11 @@ def admin_log():
         print(f"Error: {e}")
 
 def main():
+    # Initialize storage and preload starter data before the menu loop.
     init_db()
     seed_data()
     
+    # Keep the app running until the user chooses to exit.
     while True:
         choice = main_menu()
         
