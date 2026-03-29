@@ -70,117 +70,36 @@ def init_db():
 
 def seed_data():
     # Insert starter records only when tables are empty.
-    conn = sqlite3.connect("kura.db")
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT COUNT(*) FROM opportunities")
-    if cursor.fetchone()[0] == 0:
-        opportunities = [
-            (
-                "Tour Guide at Volcanoes National Park",
-                "Tourism",
-                "Musanze",
-                "Lead tourists through gorilla habitats",
-                "+250788123456",
-                "2025-03-01",
-            ),
-            (
-                "Farm Assistant - Modern Greenhouse",
-                "Agriculture",
-                "Kigali",
-                "Help with hydroponic farming",
-                "+250787654321",
-                "2025-03-02",
-            ),
-            (
-                "Hotel Receptionist - Kigali Marriott",
-                "Tourism",
-                "Kigali",
-                "Guest services and check-in",
-                "+250786543210",
-                "2025-03-03",
-            ),
-            (
-                "Coffee Harvesting Specialist",
-                "Agriculture",
-                "Rubavu",
-                "Modern coffee processing techniques",
-                "+250785432109",
-                "2025-03-04",
-            ),
-            (
-                "Wildlife Photography Assistant",
-                "Tourism",
-                "Akagera",
-                "Document wildlife for conservation",
-                "+250784321098",
-                "2025-03-05",
-            ),
-        ]
-
-        cursor.executemany(
-            """
-        INSERT INTO opportunities (title, type, district, description, contact, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            opportunities,
+    datasets = {
+        "opportunities": (
+            "INSERT INTO opportunities (title, type, district, description, contact, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("Tour Guide at Volcanoes National Park", "Tourism", "Musanze", "Lead tourists through gorilla habitats", "+250788123456", "2025-03-01"),
+                ("Farm Assistant - Modern Greenhouse", "Agriculture", "Kigali", "Help with hydroponic farming", "+250787654321", "2025-03-02"),
+                ("Hotel Receptionist - Kigali Marriott", "Tourism", "Kigali", "Guest services and check-in", "+250786543210", "2025-03-03"),
+                ("Coffee Harvesting Specialist", "Agriculture", "Rubavu", "Modern coffee processing techniques", "+250785432109", "2025-03-04"),
+                ("Wildlife Photography Assistant", "Tourism", "Akagera", "Document wildlife for conservation", "+250784321098", "2025-03-05"),
+            ]
+        ),
+        "mental_health": (
+            "INSERT INTO mental_health (name, district, type, contact, hours, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("Rwanda Mental Health Support Center", "Kigali", "Support Group", "+250788112233", "Mon-Fri 8AM-5PM", "2025-03-01"),
+                ("Youth Wellness Hub", "Musanze", "Counseling", "+250787223344", "Daily 9AM-6PM", "2025-03-02"),
+                ("Community One-Stop Center", "Rubavu", "Clinic", "+250786334455", "Mon-Sat 8AM-4PM", "2025-03-03"),
+                ("Teen Support Network", "Kigali", "Support Group", "+250785445566", "Tue-Thu 3PM-7PM", "2025-03-04"),
+                ("Rural Mental Health Initiative", "Huye", "Clinic", "+250784556677", "Mon-Fri 9AM-5PM", "2025-03-05"),
+            ]
         )
+    }
 
-    cursor.execute("SELECT COUNT(*) FROM mental_health")
-    if cursor.fetchone()[0] == 0:
-        mental_health = [
-            (
-                "Rwanda Mental Health Support Center",
-                "Kigali",
-                "Support Group",
-                "+250788112233",
-                "Mon-Fri 8AM-5PM",
-                "2025-03-01",
-            ),
-            (
-                "Youth Wellness Hub",
-                "Musanze",
-                "Counseling",
-                "+250787223344",
-                "Daily 9AM-6PM",
-                "2025-03-02",
-            ),
-            (
-                "Community One-Stop Center",
-                "Rubavu",
-                "Clinic",
-                "+250786334455",
-                "Mon-Sat 8AM-4PM",
-                "2025-03-03",
-            ),
-            (
-                "Teen Support Network",
-                "Kigali",
-                "Support Group",
-                "+250785445566",
-                "Tue-Thu 3PM-7PM",
-                "2025-03-04",
-            ),
-            (
-                "Rural Mental Health Initiative",
-                "Huye",
-                "Clinic",
-                "+250784556677",
-                "Mon-Fri 9AM-5PM",
-                "2025-03-05",
-            ),
-        ]
-
-        cursor.executemany(
-            """
-        INSERT INTO mental_health (name, district, type, contact, hours, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            mental_health,
-        )
-
-    conn.commit()
-    conn.close()
+    with sqlite3.connect("kura.db") as conn:
+        cursor = conn.cursor()
+        for table, (query, data) in datasets.items():
+            cursor.execute(f"SELECT COUNT(*) FROM {table}")
+            if cursor.fetchone()[0] == 0:
+                cursor.executemany(query, data)
+        conn.commit()
 
 
 def main_menu():
@@ -349,35 +268,29 @@ def admin_log():
     # Capture district outreach details from authorized officials.
     print("\n=== Admin: Log District Outreach ===")
 
-    # Keep this admin flow protected with a basic password check.
-    password = input("Enter admin password: ")
-    if password != "admin123":
+    if input("Enter admin password: ") != "admin123":
         print("Invalid password!")
         return
 
     print("\n--- Log District Visit ---")
     district = input("District visited: ")
-    visit_date = input("Visit date (YYYY-MM-DD): ")
+    # Default to today if date is skipped
+    visit_date = input("Visit date (YYYY-MM-DD) [Leave blank for today]: ") or datetime.now().strftime('%Y-%m-%d')
     officials = input("Officials present (comma separated): ")
     activities = input("Activities conducted: ")
 
     try:
-        conn = sqlite3.connect("kura.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-        INSERT INTO admin_logs (district, visit_date, officials, activities)
-        VALUES (?, ?, ?, ?)
-        """,
-            (district, visit_date, officials, activities),
-        )
-
-        conn.commit()
-        conn.close()
-
+        with sqlite3.connect("kura.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO admin_logs (district, visit_date, officials, activities)
+                VALUES (?, ?, ?, ?)
+                """,
+                (district, visit_date, officials, activities),
+            )
+            conn.commit()
         print("✓ District outreach logged successfully!")
-
     except Exception as e:
         print(f"Error: {e}")
 
